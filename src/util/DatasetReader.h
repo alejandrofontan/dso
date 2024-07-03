@@ -294,19 +294,26 @@ private:
 	inline void loadTimestamps()
 	{
 		std::ifstream tr;
-		std::string timesFile = path.substr(0,path.find_last_of('/')) + "/times.txt";
+		std::string timesFile = path.substr(0,path.find_last_of('/')) + "/rgb.txt";
 		tr.open(timesFile.c_str());
 		while(!tr.eof() && tr.good())
 		{
 			std::string line;
 			char buf[1000];
 			tr.getline(buf, 1000);
-
-			int id;
+            
 			double stamp;
-			float exposure = 0;
+			float exposure = 0.f;
+            char rgb_path[100];
 
-			if(3 == sscanf(buf, "%d %lf %f", &id, &stamp, &exposure))
+            if(2 == sscanf(buf, "%lf %s", &stamp, rgb_path))
+            {
+                timestamps.push_back(stamp);
+                exposures.push_back(exposure);
+            }
+
+            //int id;
+			/*if(3 == sscanf(buf, "%d %lf %f", &id, &stamp, &exposure))
 			{
 				timestamps.push_back(stamp);
 				exposures.push_back(exposure);
@@ -316,7 +323,7 @@ private:
 			{
 				timestamps.push_back(stamp);
 				exposures.push_back(exposure);
-			}
+			}*/
 		}
 		tr.close();
 
