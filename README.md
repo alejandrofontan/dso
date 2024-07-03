@@ -1,5 +1,23 @@
 # DSO: Direct Sparse Odometry
 
+# Getting Started
+## Installation
+```
+git clone https://github.com/alejandrofontan/dso.git
+cd dso
+```
+Setup the environment.
+
+```
+mamba env create -f environment.yml
+mamba activate dso
+```
+
+Build DSO
+```
+./build.sh
+```
+
 For more information see
 [https://vision.in.tum.de/dso](https://vision.in.tum.de/dso)
 
