@@ -35,7 +35,7 @@
 #include "IOWrapper/ImageDisplay.h"
 #include "IOWrapper/ImageRW.h"
 #include "util/Undistort.h"
-
+#include<opencv2/core/core.hpp>
 
 namespace dso
 {
@@ -266,52 +266,54 @@ Undistort::~Undistort()
 Undistort* Undistort::getUndistorterForFile(std::string configFilename, std::string gammaFilename, std::string vignetteFilename)
 {
 	printf("Reading Calibration from file %s",configFilename.c_str());
+    Undistort* u = new UndistortRadTan(configFilename.c_str(), false);
+    if(!u->isValid()) {delete u; return nullptr; }
 
-	std::ifstream f(configFilename.c_str());
-	if (!f.good())
-	{
-		f.close();
-		printf(" ... not found. Cannot operate without calibration, shutting down.\n");
-		f.close();
-		return 0;
-	}
+    /*std::ifstream f(configFilename.c_str());
+    if (!f.good())
+    {
+        f.close();
+        printf(" ... not found. Cannot operate without calibration, shutting down.\n");
+        f.close();
+        return 0;
+    }
 
-	printf(" ... found!\n");
-	std::string l1;
-	std::getline(f,l1);
-	f.close();
+    printf(" ... found!\n");
+    std::string l1;
+    std::getline(f,l1);
+    f.close();
 
-	float ic[10];
+    float ic[10];
 
-	Undistort* u;
+    Undistort* u;
 
     // for backwards-compatibility: Use RadTan model for 8 parameters.
-	if(std::sscanf(l1.c_str(), "%f %f %f %f %f %f %f %f",
-			&ic[0], &ic[1], &ic[2], &ic[3],
-			&ic[4], &ic[5], &ic[6], &ic[7]) == 8)
-	{
+    if(std::sscanf(l1.c_str(), "%f %f %f %f %f %f %f %f",
+            &ic[0], &ic[1], &ic[2], &ic[3],
+            &ic[4], &ic[5], &ic[6], &ic[7]) == 8)
+    {
         printf("found RadTan (OpenCV) camera model, building rectifier.\n");
         u = new UndistortRadTan(configFilename.c_str(), true);
-		if(!u->isValid()) {delete u; return 0; }
+        if(!u->isValid()) {delete u; return 0; }
     }
 
     // for backwards-compatibility: Use Pinhole / FoV model for 5 parameter.
     else if(std::sscanf(l1.c_str(), "%f %f %f %f %f",
-			&ic[0], &ic[1], &ic[2], &ic[3], &ic[4]) == 5)
-	{
-		if(ic[4]==0)
-		{
-			printf("found PINHOLE camera model, building rectifier.\n");
+            &ic[0], &ic[1], &ic[2], &ic[3], &ic[4]) == 5)
+    {
+        if(ic[4]==0)
+        {
+            printf("found PINHOLE camera model, building rectifier.\n");
             u = new UndistortPinhole(configFilename.c_str(), true);
-			if(!u->isValid()) {delete u; return 0; }
-		}
-		else
-		{
-			printf("found ATAN camera model, building rectifier.\n");
+            if(!u->isValid()) {delete u; return 0; }
+        }
+        else
+        {
+            printf("found ATAN camera model, building rectifier.\n");
             u = new UndistortFOV(configFilename.c_str(), true);
-			if(!u->isValid()) {delete u; return 0; }
-		}
-	}
+            if(!u->isValid()) {delete u; return 0; }
+        }
+    }
 
 
 
@@ -367,7 +369,7 @@ Undistort* Undistort::getUndistorterForFile(std::string configFilename, std::str
     {
         printf("could not read calib file! exit.");
         exit(1);
-    }
+    }*/
 
 	u->loadPhotometricCalibration(
 				gammaFilename,
@@ -715,18 +717,44 @@ void Undistort::makeOptimalK_full()
 
 void Undistort::readFromFile(const char* configFileName, int nPars, std::string prefix)
 {
-	photometricUndist=0;
+	photometricUndist = nullptr;
 	valid = false;
-	passthrough=false;
-	remapX = 0;
-	remapY = 0;
+	passthrough = false;
+	remapX = nullptr;
+	remapY = nullptr;
 	
 	float outputCalibration[5];
+    outputCalibration[0] = -1;
+    printf("Out: Rectify Crop\n");
 
-	parsOrg = VecX(nPars);
+    cv::FileStorage fSettings(configFileName, cv::FileStorage::READ);
+    float fx = fSettings["Camera.fx"];
+    float fy = fSettings["Camera.fy"];
+    float cx = fSettings["Camera.cx"];
+    float cy = fSettings["Camera.cy"];
+    float k1 = fSettings["Camera.k1"];
+    float k2 = fSettings["Camera.k2"];
+    float p1 = fSettings["Camera.p1"];
+    float p2 = fSettings["Camera.p2"];
+    float k3 = fSettings["Camera.k3"];
+    w = fSettings["Camera.w"];
+    h = fSettings["Camera.h"];
 
-	// read parameters
-	std::ifstream infile(configFileName);
+    parsOrg = VecX(nPars);
+    parsOrg[0] = fx ;
+    parsOrg[1] = fy ;
+    parsOrg[2] = cx - 0.5f;
+    parsOrg[3] = cy - 0.5f;
+    parsOrg[4] = k1;
+    parsOrg[5] = k2;
+    parsOrg[6] = p1;
+    parsOrg[7] = p2;
+    parsOrg[8] = k3;
+    wOrg = w;
+    hOrg = h;
+
+    // read parameters
+	/*std::ifstream infile(configFileName);
 	assert(infile.good());
 
     std::string l1,l2,l3,l4;
@@ -734,10 +762,10 @@ void Undistort::readFromFile(const char* configFileName, int nPars, std::string 
 	std::getline(infile,l1);
 	std::getline(infile,l2);
     std::getline(infile,l3);
-    std::getline(infile,l4);
+    std::getline(infile,l4);*/
 
     // l1 & l2
-    if(nPars == 5) // fov model
+    /*if(nPars == 5) // fov model
 	{
 		char buf[1000];
 		snprintf(buf, 1000, "%s%%lf %%lf %%lf %%lf %%lf", prefix.c_str());
@@ -783,11 +811,11 @@ void Undistort::readFromFile(const char* configFileName, int nPars, std::string 
 		printf("called with invalid number of parameters.... forgot to implement me?\n");
 		infile.close();
 		return;
-	}
+	}*/
 
 
 
-    if(parsOrg[2] < 1 && parsOrg[3] < 1)
+    /*if(parsOrg[2] < 1 && parsOrg[3] < 1)
     {
         printf("\n\nFound fx=%f, fy=%f, cx=%f, cy=%f.\n I'm assuming this is the \"relative\" calibration file format,"
                "and will rescale this by image width / height to fx=%f, fy=%f, cx=%f, cy=%f.\n\n",
@@ -803,12 +831,12 @@ void Undistort::readFromFile(const char* configFileName, int nPars, std::string 
         parsOrg[1] = parsOrg[1] * hOrg;
         parsOrg[2] = parsOrg[2] * wOrg - 0.5;
         parsOrg[3] = parsOrg[3] * hOrg - 0.5;
-    }
+    }*/
 
 
 
 	// l3
-	if(l3 == "crop")
+	/*if(l3 == "crop")
 	{
 		outputCalibration[0] = -1;
         printf("Out: Rectify Crop\n");
@@ -834,11 +862,11 @@ void Undistort::readFromFile(const char* configFileName, int nPars, std::string 
 		printf("Out: Failed to Read Output pars... not rectifying.\n");
 		infile.close();
 		return;
-	}
+	}*/
 
 
 	// l4
-	if(std::sscanf(l4.c_str(), "%d %d", &w, &h) == 2)
+	/*if(std::sscanf(l4.c_str(), "%d %d", &w, &h) == 2)
 	{
 		if(benchmarkSetting_width != 0)
         {
@@ -859,7 +887,7 @@ void Undistort::readFromFile(const char* configFileName, int nPars, std::string 
 	{
 		printf("Out: Failed to Read Output resolution... not rectifying.\n");
 		valid = false;
-    }
+    }*/
 
     remapX = new float[w*h];
     remapY = new float[w*h];
@@ -1014,9 +1042,9 @@ UndistortRadTan::UndistortRadTan(const char* configFileName, bool noprefix)
     printf("Creating RadTan undistorter\n");
 
     if(noprefix)
-        readFromFile(configFileName, 8);
+        readFromFile(configFileName, 9);
     else
-        readFromFile(configFileName, 8,"RadTan ");
+        readFromFile(configFileName, 9,"RadTan ");
 }
 UndistortRadTan::~UndistortRadTan()
 {
@@ -1033,13 +1061,12 @@ void UndistortRadTan::distortCoordinates(float* in_x, float* in_y, float* out_x,
     float k2 = parsOrg[5];
     float r1 = parsOrg[6];
     float r2 = parsOrg[7];
+    float k3 = parsOrg[8];
 
     float ofx = K(0,0);
     float ofy = K(1,1);
     float ocx = K(0,2);
     float ocy = K(1,2);
-
-
 
     for(int i=0;i<n;i++)
     {
@@ -1053,7 +1080,7 @@ void UndistortRadTan::distortCoordinates(float* in_x, float* in_y, float* out_x,
         float my2_u = iy * iy;
         float mxy_u = ix * iy;
         float rho2_u = mx2_u+my2_u;
-        float rad_dist_u = k1 * rho2_u + k2 * rho2_u * rho2_u;
+        float rad_dist_u = k1 * rho2_u + k2 * rho2_u * rho2_u + k3 * rho2_u * rho2_u * rho2_u;
         float x_dist = ix + ix * rad_dist_u + 2.0 * r1 * mxy_u + r2 * (rho2_u + 2.0 * mx2_u);
         float y_dist = iy + iy * rad_dist_u + 2.0 * r2 * mxy_u + r1 * (rho2_u + 2.0 * my2_u);
         float ox = fx*x_dist+cx;
