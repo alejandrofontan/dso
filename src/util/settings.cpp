@@ -114,10 +114,10 @@ int   setting_minGoodResForMarg=4;
 // 0 = nothing.
 // 1 = apply inv. response.
 // 2 = apply inv. response & remove V.
-int setting_photometricCalibration = 2;
+int setting_photometricCalibration = 0; //;2;
 bool setting_useExposure = true;
-float setting_affineOptModeA = 1e12; //-1: fix. >=0: optimize (with prior, if > 0).
-float setting_affineOptModeB = 1e8; //-1: fix. >=0: optimize (with prior, if > 0).
+float setting_affineOptModeA = 0; //;1e12; //-1: fix. >=0: optimize (with prior, if > 0).
+float setting_affineOptModeB = 0; //;1e8; //-1: fix. >=0: optimize (with prior, if > 0).
 
 int setting_gammaWeightsPixelSelect = 1; // 1 = use original intensity for pixel selection; 0 = use gamma-corrected intensity.
 
@@ -190,7 +190,7 @@ bool debugSaveImages = false;
 bool multiThreading = true;
 bool disableAllDisplay = false;
 bool setting_onlyLogKFPoses = true;
-bool setting_logStuff = true;
+bool setting_logStuff = false;
 
 
 
