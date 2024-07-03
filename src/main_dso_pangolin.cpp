@@ -55,6 +55,9 @@ std::string vignette = "";
 std::string gammaCalib = "";
 std::string source = "";
 std::string calib = "";
+std::string exp_folder = "";
+std::string exp_id = "";
+
 double rescale = 1;
 bool reverse = false;
 bool disableROS = false;
@@ -66,12 +69,18 @@ bool preload=false;
 bool useSampleOutput=false;
 
 
-int mode=0;
+int mode=1;
 
 bool firstRosSpin=false;
 
 using namespace dso;
 
+std::string paddingZeros(const std::string& number, const size_t numberOfZeros = 5){
+    std::string zeros{};
+    for(size_t iZero{}; iZero < numberOfZeros - number.size(); ++iZero)
+        zeros += "0";
+    return (zeros + number);
+}
 
 void my_exit_handler(int s)
 {
@@ -176,7 +185,7 @@ void parseArgument(char* arg)
         return;
     }
 
-	if(1==sscanf(arg,"preset=%d",&option))
+	if(1==sscanf(arg,"preset:%d",&option))
 	{
 		settingsDefault(option);
 		return;
@@ -264,28 +273,46 @@ void parseArgument(char* arg)
 		return;
 	}
 
-	if(1==sscanf(arg,"files=%s",buf))
+	if(1==sscanf(arg,"sequence_path:%s",buf))
 	{
 		source = buf;
+        source += "/rgb";
+        calib = buf;
+        calib += "/calibration.yaml";
 		printf("loading data from %s!\n", source.c_str());
+        printf("loading calibration from %s!\n", calib.c_str());
 		return;
 	}
 
-	if(1==sscanf(arg,"calib=%s",buf))
+    if(1==sscanf(arg,"exp_folder:%s",buf))
+    {
+        exp_folder = buf;
+        printf("exp_folder %s!\n", exp_folder.c_str());
+        return;
+    }
+
+    if(1==sscanf(arg,"exp_id:%s",buf))
+    {
+        exp_id = buf;
+        printf("exp_id %s!\n", exp_id.c_str());
+        return;
+    }
+
+	/*if(1==sscanf(arg,"calib:%s",buf))
 	{
 		calib = buf;
 		printf("loading calibration from %s!\n", calib.c_str());
 		return;
-	}
+	}*/
 
-	if(1==sscanf(arg,"vignette=%s",buf))
+	if(1==sscanf(arg,"vignette:%s",buf))
 	{
 		vignette = buf;
 		printf("loading vignette from %s!\n", vignette.c_str());
 		return;
 	}
 
-	if(1==sscanf(arg,"gamma=%s",buf))
+	if(1==sscanf(arg,"gamma:%s",buf))
 	{
 		gammaCalib = buf;
 		printf("loading gammaCalib from %s!\n", gammaCalib.c_str());
@@ -320,31 +347,34 @@ void parseArgument(char* arg)
 		return;
 	}
 
-	if(1==sscanf(arg,"mode=%d",&option))
-	{
+    if(1==sscanf(arg,"mode=%d",&option))
+    {
 
-		mode = option;
-		if(option==0)
-		{
-			printf("PHOTOMETRIC MODE WITH CALIBRATION!\n");
-		}
-		if(option==1)
-		{
-			printf("PHOTOMETRIC MODE WITHOUT CALIBRATION!\n");
-			setting_photometricCalibration = 0;
-			setting_affineOptModeA = 0; //-1: fix. >=0: optimize (with prior, if > 0).
-			setting_affineOptModeB = 0; //-1: fix. >=0: optimize (with prior, if > 0).
-		}
-		if(option==2)
-		{
-			printf("PHOTOMETRIC MODE WITH PERFECT IMAGES!\n");
-			setting_photometricCalibration = 0;
-			setting_affineOptModeA = -1; //-1: fix. >=0: optimize (with prior, if > 0).
-			setting_affineOptModeB = -1; //-1: fix. >=0: optimize (with prior, if > 0).
+        mode = option;
+        if(option==0)
+        {
+            printf("PHOTOMETRIC MODE WITH CALIBRATION!\n");
+            setting_photometricCalibration = 2;
+            setting_affineOptModeA = 1e12;
+            setting_affineOptModeB = 1e8;
+        }
+        if(option==1)
+        {
+            printf("PHOTOMETRIC MODE WITHOUT CALIBRATION!\n");
+            setting_photometricCalibration = 0;
+            setting_affineOptModeA = 0; //-1: fix. >=0: optimize (with prior, if > 0).
+            setting_affineOptModeB = 0; //-1: fix. >=0: optimize (with prior, if > 0).
+        }
+        if(option==2)
+        {
+            printf("PHOTOMETRIC MODE WITH PERFECT IMAGES!\n");
+            setting_photometricCalibration = 0;
+            setting_affineOptModeA = -1; //-1: fix. >=0: optimize (with prior, if > 0).
+            setting_affineOptModeB = -1; //-1: fix. >=0: optimize (with prior, if > 0).
             setting_minGradHistAdd=3;
-		}
-		return;
-	}
+        }
+        return;
+    }
 
 	printf("could not parse argument \"%s\"!!!!\n", arg);
 }
@@ -530,9 +560,8 @@ int main( int argc, char** argv )
         struct timeval tv_end;
         gettimeofday(&tv_end, NULL);
 
-
-        fullSystem->printResult("result.txt");
-
+        std::string resultsPath_expId = exp_folder + "/" + paddingZeros(exp_id) + "_" + "KeyFrameTrajectory.txt";
+        fullSystem->printResult(resultsPath_expId);
 
         int numFramesProcessed = abs(idsToPlay[0]-idsToPlay.back());
         double numSecondsProcessed = fabs(reader->getTimestamp(idsToPlay[0])-reader->getTimestamp(idsToPlay.back()));
@@ -560,16 +589,15 @@ int main( int argc, char** argv )
             tmlog.flush();
             tmlog.close();
         }
-
+        viewer->close();
     });
-
 
     if(viewer != 0)
         viewer->run();
 
     runthread.join();
 
-	for(IOWrap::Output3DWrapper* ow : fullSystem->outputWrapper)
+    for(IOWrap::Output3DWrapper* ow : fullSystem->outputWrapper)
 	{
 		ow->join();
 		delete ow;
