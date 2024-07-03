@@ -737,21 +737,30 @@ void Undistort::readFromFile(const char* configFileName, int nPars, std::string 
     float p1 = fSettings["Camera.p1"];
     float p2 = fSettings["Camera.p2"];
     float k3 = fSettings["Camera.k3"];
-    w = fSettings["Camera.w"];
-    h = fSettings["Camera.h"];
+    wOrg = fSettings["Camera.w"];
+    hOrg = fSettings["Camera.h"];
 
     parsOrg = VecX(nPars);
     parsOrg[0] = fx ;
     parsOrg[1] = fy ;
     parsOrg[2] = cx - 0.5f;
     parsOrg[3] = cy - 0.5f;
+
     parsOrg[4] = k1;
     parsOrg[5] = k2;
     parsOrg[6] = p1;
     parsOrg[7] = p2;
     parsOrg[8] = k3;
-    wOrg = w;
-    hOrg = h;
+
+    if((wOrg % 64) == 0)
+        w = wOrg;
+    else
+        w =  64 * (wOrg / 64);
+
+    if((hOrg % 64) == 0)
+        h = hOrg;
+    else
+        h = 64 * (hOrg / 64);
 
     // read parameters
 	/*std::ifstream infile(configFileName);
