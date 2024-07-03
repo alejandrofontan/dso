@@ -1,0 +1,31 @@
+name: dso
+channels:
+  - conda-forge
+  - defaults
+  - fontan
+dependencies:
+  - cxx-compiler
+  - gcc
+  - ninja
+  - cmake
+  - pkg-config
+  - libglvnd-egl-cos7-x86_64 
+  - libglvnd-devel-cos7-x86_64 
+  - mesa-libegl-devel-cos7-x86_64 
+  - mesa-libgl-devel-cos7-x86_64 
+  - mesa-dri-drivers-cos7-x86_64 
+  - libselinux-cos7-x86_64 
+  - libxdamage-cos7-x86_64 
+  - libxxf86vm-cos7-x86_64 
+  - libxfixes-cos7-x86_64 
+  - libxext-cos7-x86_64 
+  - libxau-cos7-x86_64 
+  - libxcb-cos7-x86_64 
+  - xorg-libxext 
+  - xorg-libx11 
+  - xorg-libxfixes
+  - opencv
+  - eigen 
+  - boost
+  - fontan::pangolin
+  
