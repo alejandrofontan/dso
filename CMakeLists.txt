@@ -1,17 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 project(dso)
 
-IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release)
-ENDIF()
-
-MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
-
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -march=native")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -march=native")
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 set(SRCS_DSO
   src/FullSystem/FullSystem.cpp
@@ -52,7 +47,6 @@ if (MSVC)
 endif (MSVC)
 
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 add_library(${PROJECT_NAME} SHARED ${SRCS_DSO})
 
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -87,7 +81,6 @@ target_link_libraries(${PROJECT_NAME}
         pango_windowing
 )
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 add_executable(mono src/main_dso_pangolin.cpp)
 target_link_libraries(mono ${PROJECT_NAME})
