@@ -1,8 +1,8 @@
+# DSO: Direct Sparse Odometry
+
 This repository is a fork of [**DSO**](https://github.com/JakobEngel/dso), incorporating updates to utilize most recent libraries.
 
 This version has been modified to serve as a baseline for Visual Simultaneous Localization and Mapping (VSLAM) experiments within the  [**VSLAM-LAB**](https://github.com/alejandrofontan/VSLAM-LAB) environment. 
-
-# DSO: Direct Sparse Odometry
 
 **Note**: The current version of this repository only supports the radtan distortion model with 5 parameters. As a result, other capabilities such as using photometric calibration might not be working properly.
 
