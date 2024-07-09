@@ -1,11 +1,10 @@
 name: dso
 channels:
   - conda-forge
-  - defaults
   - fontan
 dependencies:
   - cxx-compiler
-  - gcc
+  - c-compiler
   - ninja
   - cmake
   - pkg-config
