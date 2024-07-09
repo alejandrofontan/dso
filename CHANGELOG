@@ -1,5 +1,9 @@
 
 
+========= 09.07.2024 ==========
+* Enabled the radtan distortion model with 5 parameters and disabled all other models.
+* Set dimensions of the cropped image a multiple of 64 in Undistort::readFromFile() in src/util/Undistort.cpp. 
+* Modified the executable main_dso_pangolin.cpp to read inputs from VSLAM-LAB.
 
 ========= 16.11.2016 ==========
 * Added Sample output wrapper IOWrapper/OutputWrapper/SampleOutputWrapper.h.
