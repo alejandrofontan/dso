@@ -4,7 +4,7 @@ This repository is a fork of [**DSO**](https://github.com/JakobEngel/dso), incor
 
 This version has been modified to serve as a baseline for Visual Simultaneous Localization and Mapping (VSLAM) experiments within the  [**VSLAM-LAB**](https://github.com/alejandrofontan/VSLAM-LAB) environment. 
 
-<p style="color:red;">The current version of this repository only supports the radtan distortion model with 5 parameters. As a result, other capabilities such as using photometric calibration might not be working properly.</p>
+**Note**: The current version of this repository only supports the radtan distortion model with 5 parameters. As a result, other capabilities such as using photometric calibration might not be working properly.
 
 # Getting Started
 If you want to run DSO on your own data that is not contained in  [**VSLAM-LAB**](https://github.com/alejandrofontan/VSLAM-LAB), you can follow these steps.
