@@ -347,7 +347,7 @@ void parseArgument(char* arg)
 		return;
 	}
 
-    if(1==sscanf(arg,"mode=%d",&option))
+    if(1==sscanf(arg,"mode:%d",&option))
     {
 
         mode = option;
