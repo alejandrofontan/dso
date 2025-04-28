@@ -30,7 +30,7 @@ mamba activate dso
 ```
 Build DSO:
 ```
-python build.py
+./build.sh
 ```
 
 ## Related Publications:
